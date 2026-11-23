@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+# shellcheck shell=bash
+# - - - - - - - - - - - - - - - - - - - - - - - - -
+##@Version           :  202610102130-git
+# @@Author           :  CasjaysDev
+# @@Contact          :  CasjaysDev <docker-admin@casjaysdev.pro>
+# @@License          :  WTFPL
+# @@Copyright        :  Copyright: (c) 2026 CasjaysDev
+# @@File             :  taiga-gateway
+# @@Description      :  starts the nginx gateway in the foreground
+# @@Terminal App     :  no
+# @@sudo/root        :  no
+# - - - - - - - - - - - - - - - - - - - - - - - - -
+# shellcheck disable=SC1091,SC2154
+set -eo pipefail
+. /usr/local/etc/docker/env/taiga.sh
+# - - - - - - - - - - - - - - - - - - - - - - - - -
+exec nginx -c /etc/nginx/nginx.conf
+# - - - - - - - - - - - - - - - - - - - - - - - - -
+# ex: ts=2 sw=2 et filetype=sh
+# - - - - - - - - - - - - - - - - - - - - - - - - -

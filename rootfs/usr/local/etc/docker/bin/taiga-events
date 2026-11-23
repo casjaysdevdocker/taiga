@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+# shellcheck shell=bash
+# - - - - - - - - - - - - - - - - - - - - - - - - -
+##@Version           :  202610102130-git
+# @@Author           :  CasjaysDev
+# @@Contact          :  CasjaysDev <docker-admin@casjaysdev.pro>
+# @@License          :  WTFPL
+# @@Copyright        :  Copyright: (c) 2026 CasjaysDev
+# @@File             :  taiga-events
+# @@Description      :  starts the taiga-events websocket server on 8888 (liveness on 3023)
+# @@Terminal App     :  no
+# @@sudo/root        :  no
+# - - - - - - - - - - - - - - - - - - - - - - - - -
+# shellcheck disable=SC1091,SC2154
+set -eo pipefail
+. /usr/local/etc/docker/env/taiga.sh
+# - - - - - - - - - - - - - - - - - - - - - - - - -
+cd "$TAIGA_ROOT/taiga-events"
+export NODE_ENV="production"
+export WEB_SOCKET_SERVER_PORT="$TAIGA_EVENTS_PORT"
+export APP_PORT="$TAIGA_EVENTS_HEALTH_PORT"
+exec /usr/local/bin/taiga-events "$TAIGA_ROOT/taiga-events/src/index.js"
+# - - - - - - - - - - - - - - - - - - - - - - - - -
+# ex: ts=2 sw=2 et filetype=sh
+# - - - - - - - - - - - - - - - - - - - - - - - - -

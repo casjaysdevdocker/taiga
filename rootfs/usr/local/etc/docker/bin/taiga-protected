@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+# shellcheck shell=bash
+# - - - - - - - - - - - - - - - - - - - - - - - - -
+##@Version           :  202610102130-git
+# @@Author           :  CasjaysDev
+# @@Contact          :  CasjaysDev <docker-admin@casjaysdev.pro>
+# @@License          :  WTFPL
+# @@Copyright        :  Copyright: (c) 2026 CasjaysDev
+# @@File             :  taiga-protected
+# @@Description      :  starts the taiga-protected signed media service (gunicorn) on 127.0.0.1:8003
+# @@Terminal App     :  no
+# @@sudo/root        :  no
+# - - - - - - - - - - - - - - - - - - - - - - - - -
+# shellcheck disable=SC1091,SC2154
+set -eo pipefail
+. /usr/local/etc/docker/env/taiga.sh
+# - - - - - - - - - - - - - - - - - - - - - - - - -
+cd "$TAIGA_ROOT/taiga-protected"
+exec "$TAIGA_VENV/venv-protected/bin/taiga-protected" -c 'from gunicorn.app.wsgiapp import run; run()' server:app \
+  --name taiga-protected \
+  --bind "127.0.0.1:$TAIGA_PROTECTED_PORT" \
+  --workers "$PROTECTED_WORKERS" \
+  --worker-tmp-dir /dev/shm \
+  --max-requests 3600 \
+  --max-requests-jitter 360 \
+  --timeout 60 \
+  --log-level info \
+  --access-logfile -
+# - - - - - - - - - - - - - - - - - - - - - - - - -
+# ex: ts=2 sw=2 et filetype=sh
+# - - - - - - - - - - - - - - - - - - - - - - - - -

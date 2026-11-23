@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+# shellcheck shell=bash
+# - - - - - - - - - - - - - - - - - - - - - - - - -
+##@Version           :  202610102130-git
+# @@Author           :  CasjaysDev
+# @@Contact          :  CasjaysDev <docker-admin@casjaysdev.pro>
+# @@License          :  WTFPL
+# @@Copyright        :  Copyright: (c) 2026 CasjaysDev
+# @@File             :  taiga-async
+# @@Description      :  starts the taiga-back celery worker with the embedded beat scheduler
+# @@Terminal App     :  no
+# @@sudo/root        :  no
+# - - - - - - - - - - - - - - - - - - - - - - - - -
+# shellcheck disable=SC1091,SC2154
+set -eo pipefail
+. /usr/local/etc/docker/env/taiga.sh
+# - - - - - - - - - - - - - - - - - - - - - - - - -
+cd "$TAIGA_ROOT/taiga-back"
+exec "$TAIGA_VENV/venv-back/bin/taiga-async" -m celery -A taiga.celery worker -B \
+  --hostname "taiga-async@%h" \
+  --schedule-filename "$TAIGA_DATA_DIR/celerybeat-schedule" \
+  --concurrency "$CELERY_CONCURRENCY" \
+  -l INFO
+# - - - - - - - - - - - - - - - - - - - - - - - - -
+# ex: ts=2 sw=2 et filetype=sh
+# - - - - - - - - - - - - - - - - - - - - - - - - -

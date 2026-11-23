@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+# shellcheck shell=bash
+# - - - - - - - - - - - - - - - - - - - - - - - - -
+##@Version           :  202610102130-git
+# @@Author           :  CasjaysDev
+# @@Contact          :  CasjaysDev <docker-admin@casjaysdev.pro>
+# @@License          :  WTFPL
+# @@Copyright        :  Copyright: (c) 2026 CasjaysDev
+# @@File             :  taiga-migrate
+# @@Description      :  waits for postgresql and rabbitmq then runs the taiga-back migrations and loads the initial data
+# @@Terminal App     :  no
+# @@sudo/root        :  no
+# - - - - - - - - - - - - - - - - - - - - - - - - -
+# shellcheck disable=SC1091,SC2154
+set -eo pipefail
+. /usr/local/etc/docker/env/taiga.sh
+# - - - - - - - - - - - - - - - - - - - - - - - - -
+PY="$TAIGA_VENV/venv-back/bin/python"
+cd "$TAIGA_ROOT/taiga-back"
+if [ -z "$POSTGRES_PASSWORD" ]; then
+  echo "Warning: POSTGRES_PASSWORD is empty" >&2
+fi
+if [ -z "$RABBITMQ_PASS" ]; then
+  echo "Warning: RABBITMQ_PASS is empty" >&2
+fi
+# a user supplied settings file replaces the generated one
+if [ -f "/config/taiga-back/config.py" ]; then
+  cp -f "/config/taiga-back/config.py" "$TAIGA_ROOT/taiga-back/settings/config.py"
+fi
+__taiga_wait_for "$POSTGRES_HOST" "$POSTGRES_PORT" "postgresql"
+__taiga_wait_for "$RABBITMQ_HOST" "$RABBITMQ_PORT" "rabbitmq"
+echo "Executing pending migrations"
+"$PY" manage.py migrate --noinput
+echo "Loading the default project templates"
+"$PY" manage.py loaddata initial_project_templates
+# optional first administrator - only created when a password is supplied and the user does not exist yet
+if [ -n "$TAIGA_ADMIN_PASSWORD" ]; then
+  echo "Ensuring the administrator ${TAIGA_ADMIN_USERNAME:-admin} exists"
+  DJANGO_SUPERUSER_USERNAME="${TAIGA_ADMIN_USERNAME:-admin}" \
+    DJANGO_SUPERUSER_EMAIL="${TAIGA_ADMIN_EMAIL:-admin@${TAIGA_SITES_DOMAIN%%:*}}" \
+    DJANGO_SUPERUSER_PASSWORD="$TAIGA_ADMIN_PASSWORD" \
+    "$PY" manage.py createsuperuser --noinput 2>&1 | grep -v -- "already taken" || true
+fi
+echo "Migrations finished"
+# - - - - - - - - - - - - - - - - - - - - - - - - -
+# ex: ts=2 sw=2 et filetype=sh
+# - - - - - - - - - - - - - - - - - - - - - - - - -
